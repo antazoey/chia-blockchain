@@ -7,7 +7,7 @@ from src.consensus.constants import ConsensusConstants
 from src.full_node.full_node import FullNode
 from src.server.server import ChiaServer
 from src.timelord_launcher import spawn_process, kill_processes
-from src.util.block_tools import BlockTools
+from src.util.block_tools import BlockTools, test_constants
 from src.util.keychain import Keychain, bytes_to_mnemonic
 from src.server.connection import PeerInfo
 from src.simulator.start_simulator import service_kwargs_for_full_node_simulator
@@ -20,24 +20,10 @@ from src.server.start_wallet import service_kwargs_for_wallet
 from src.server.start_service import Service
 from src.util.ints import uint16, uint32
 from src.util.chech32 import encode_puzzle_hash
-from src.consensus.default_constants import DEFAULT_CONSTANTS
-
 from tests.time_out_assert import time_out_assert
 
-test_constants = DEFAULT_CONSTANTS.replace(
-    **{
-        "DIFFICULTY_STARTING": 2 ** 5,
-        "DISCRIMINANT_SIZE_BITS": 32,
-        "SUB_EPOCH_SUB_BLOCKS": 70,
-        "EPOCH_SUB_BLOCKS": 140,
-        "IPS_STARTING": 2 ** 7,
-        "NUMBER_ZERO_BITS_PLOT_FILTER": 1,  # H(plot signature of the challenge) must start with these many zeroes
-        "MAX_FUTURE_TIME": 3600
-        * 24
-        * 10,  # Allows creating blockchains with timestamps up to 10 days in the future, for testing
-    }
-)
-bt = BlockTools()
+
+bt = BlockTools(constants=test_constants)
 
 self_hostname = bt.config["self_hostname"]
 

@@ -1,6 +1,6 @@
 from src.consensus.default_constants import DEFAULT_CONSTANTS
 
-test_constants = DEFAULT_CONSTANTS.replace(
+sim_test_constants = DEFAULT_CONSTANTS.replace(
     **{
         "DIFFICULTY_STARTING": 1,
         "DISCRIMINANT_SIZE_BITS": 8,
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     from src.util.block_tools import BlockTools
 
     # TODO: mariano: fix this with new consensus
-    bt = BlockTools(root_path=DEFAULT_ROOT_PATH)
-    new_genesis_block = bt.create_genesis_block(test_constants, bytes([0] * 32), b"0")
+    bt = BlockTools(root_path=DEFAULT_ROOT_PATH, constants=sim_test_constants)
+    new_genesis_block = bt.create_genesis_block(sim_test_constants, bytes([0] * 32), b"0")
 
     print(bytes(new_genesis_block))

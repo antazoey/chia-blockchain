@@ -8,7 +8,11 @@ import pytest
 from src.full_node.block_store import BlockStore
 from src.consensus.blockchain import Blockchain, ReceiveBlockResult
 from src.full_node.coin_store import CoinStore
-from src.full_node.weight_proof import create_sub_epoch_segments, get_sub_epoch_block_num, full_block_to_header
+from src.full_node.weight_proof import (
+    create_sub_epoch_segments,
+    get_sub_epoch_block_num,
+    full_block_to_header,
+)
 from src.types.header_block import HeaderBlock
 from src.types.sized_bytes import bytes32
 from src.util.ints import uint32
@@ -74,7 +78,7 @@ class TestWeightProof:
     @pytest.mark.asyncio
     async def test_get_sub_epoch_block_num_basic(self, empty_blockchain):
         assert empty_blockchain.get_peak() is None
-        blocks = bt.get_consecutive_blocks(test_constants, 200)
+        blocks = bt.get_consecutive_blocks(200)
         header_cache: Dict[bytes32, HeaderBlock] = {}
         blockchain = empty_blockchain
         for block in blocks:
@@ -91,7 +95,7 @@ class TestWeightProof:
     @pytest.mark.asyncio
     async def test_create_sub_epoch_segments(self, empty_blockchain):
         assert empty_blockchain.get_peak() is None
-        blocks = bt.get_consecutive_blocks(test_constants, 200)
+        blocks = bt.get_consecutive_blocks(200)
         header_cache: Dict[bytes32, HeaderBlock] = {}
         blockchain = empty_blockchain
         for block in blocks:

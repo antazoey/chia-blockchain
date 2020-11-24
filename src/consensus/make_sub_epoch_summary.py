@@ -8,7 +8,11 @@ from src.consensus.pot_iterations import (
     calculate_sub_slot_iters,
 )
 from src.consensus.deficit import calculate_deficit
-from src.consensus.difficulty_adjustment import get_next_ips, finishes_sub_epoch, get_next_difficulty
+from src.consensus.difficulty_adjustment import (
+    get_next_ips,
+    can_finish_sub_epoch,
+    get_next_difficulty,
+)
 from src.full_node.sub_block_record import SubBlockRecord
 from src.types.full_block import FullBlock
 from src.types.sized_bytes import bytes32
@@ -76,10 +80,10 @@ def next_sub_epoch_summary(
         )
     overflow = is_overflow_sub_block(constants, signage_point_index)
     deficit = calculate_deficit(constants, block.height, prev_sb, overflow, len(block.finished_sub_slots) > 0)
-    finishes_se = finishes_sub_epoch(
+    finishes_se = can_finish_sub_epoch(
         constants, block.height, deficit, False, sub_blocks, prev_sb.header_hash if prev_sb is not None else None
     )
-    finishes_epoch: bool = finishes_sub_epoch(
+    finishes_epoch: bool = can_finish_sub_epoch(
         constants, block.height, deficit, True, sub_blocks, prev_sb.header_hash if prev_sb is not None else None
     )
 

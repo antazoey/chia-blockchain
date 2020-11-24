@@ -98,7 +98,28 @@ def _get_last_block_in_previous_epoch(
         return curr
 
 
+def finishes_epoch(
+    constants: ConsensusConstants,
+    height: uint32,
+    deficit: uint8,
+    sub_blocks: Dict[bytes32, SubBlockRecord],
+    prev_header_hash: Optional[bytes32],
+) -> bool:
+    # check if new slot
+    return can_finish_sub_epoch(constants, height, deficit, True, sub_blocks, prev_header_hash)
+
+
 def finishes_sub_epoch(
+    constants: ConsensusConstants,
+    height: uint32,
+    deficit: uint8,
+    sub_blocks: Dict[bytes32, SubBlockRecord],
+    prev_header_hash: Optional[bytes32],
+) -> bool:
+    return can_finish_sub_epoch(constants, height, deficit, False, sub_blocks, prev_header_hash)
+
+
+def can_finish_sub_epoch(
     constants: ConsensusConstants,
     height: uint32,
     deficit: uint8,
@@ -172,7 +193,7 @@ def get_next_ips(
     prev_sb: SubBlockRecord = sub_blocks[prev_header_hash]
 
     # If we are in the same epoch, return same ips
-    if not new_slot or not finishes_sub_epoch(constants, height, deficit, True, sub_blocks, prev_header_hash):
+    if not new_slot or not can_finish_sub_epoch(constants, height, deficit, True, sub_blocks, prev_header_hash):
         return ips
 
     last_block_prev: SubBlockRecord = _get_last_block_in_previous_epoch(
@@ -240,7 +261,7 @@ def get_next_difficulty(
     prev_sb: SubBlockRecord = sub_blocks[prev_header_hash]
 
     # If we are in the same slot as previous sub-block, return same difficulty
-    if not new_slot or not finishes_sub_epoch(constants, height, deficit, True, sub_blocks, prev_header_hash):
+    if not new_slot or not can_finish_sub_epoch(constants, height, deficit, True, sub_blocks, prev_header_hash):
         return current_difficulty
 
     last_block_prev: SubBlockRecord = _get_last_block_in_previous_epoch(

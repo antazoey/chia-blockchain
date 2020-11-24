@@ -20,7 +20,7 @@ class TestRpc:
         num_blocks = 5
         test_rpc_port = uint16(21522)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10)
 
         for i in range(1, num_blocks):
             async for _ in full_node_1.respond_unfinished_block(full_node_protocol.RespondUnfinishedBlock(blocks[i])):

@@ -52,7 +52,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -81,7 +81,7 @@ class TestBlockchainTransactions:
         aggsig = next_spendbundle.aggregated_signature
 
         dic_h = {11: (program, aggsig)}
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         next_block = new_blocks[11]
         async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(next_block)):
@@ -119,7 +119,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -138,7 +138,7 @@ class TestBlockchainTransactions:
         aggsig = block_spendbundle.aggregated_signature
 
         dic_h = {(num_blocks + 1): (program, aggsig)}
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         next_block = new_blocks[num_blocks + 1]
         error = await full_node_1.blockchain._validate_transactions(next_block, next_block.get_fees_coin().amount)
@@ -152,7 +152,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -171,7 +171,7 @@ class TestBlockchainTransactions:
         aggsig = block_spendbundle.aggregated_signature
 
         dic_h = {(num_blocks + 1): (program, aggsig)}
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         next_block = new_blocks[(num_blocks + 1)]
         error = await full_node_1.blockchain._validate_transactions(next_block, next_block.get_fees_coin().amount)
@@ -185,7 +185,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -200,7 +200,7 @@ class TestBlockchainTransactions:
         aggsig = block_spendbundle.aggregated_signature
 
         dic_h = {11: (program, aggsig)}
-        blocks = bt.get_consecutive_blocks(test_constants, 10, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        blocks = bt.get_consecutive_blocks(10, blocks, 10, b"", coinbase_puzzlehash, dic_h)
         # Move chain to height 20, with a spend at height 11
         for block in blocks:
             async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
@@ -310,7 +310,7 @@ class TestBlockchainTransactions:
         receiver_2_puzzlehash = WALLET_A_PUZZLE_HASHES[2]
         receiver_3_puzzlehash = WALLET_A_PUZZLE_HASHES[3]
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -401,7 +401,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_1_puzzlehash = WALLET_A_PUZZLE_HASHES[1]
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -409,7 +409,7 @@ class TestBlockchainTransactions:
                 pass
 
         # Spends a coinbase created in reorg
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks[:6], 10, b"reorg cb coin", coinbase_puzzlehash)
+        new_blocks = bt.get_consecutive_blocks(1, blocks[:6], 10, b"reorg cb coin", coinbase_puzzlehash)
         [_ async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(new_blocks[-1]))]
         assert new_blocks[-1].header_hash in full_node_1.blockchain.headers
 
@@ -451,7 +451,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_1_puzzlehash = WALLET_A_PUZZLE_HASHES[1]
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes_standard_freeze
 
         for block in blocks:
@@ -459,7 +459,7 @@ class TestBlockchainTransactions:
                 pass
 
         # Spends a coinbase created in reorg
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks[:6], 10, b"reorg cb coin", coinbase_puzzlehash)
+        new_blocks = bt.get_consecutive_blocks(1, blocks[:6], 10, b"reorg cb coin", coinbase_puzzlehash)
         [_ async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(new_blocks[-1]))]
         assert new_blocks[-1].header_hash in full_node_1.blockchain.headers
 
@@ -491,7 +491,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_1_puzzlehash = WALLET_A_PUZZLE_HASHES[1]
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -506,7 +506,7 @@ class TestBlockchainTransactions:
         aggsig = block_spendbundle.aggregated_signature
 
         dic_h = {11: (program, aggsig)}
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
         [_ async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(new_blocks[-1]))]
 
         # Spends a coin in a genesis reorg, that was already spent
@@ -532,7 +532,7 @@ class TestBlockchainTransactions:
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
         # Farm blocks
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -570,7 +570,7 @@ class TestBlockchainTransactions:
 
         # Create another block that includes our transaction
         dic_h = {11: (invalid_program, aggsig)}
-        invalid_new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        invalid_new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         # Try to validate that block
         next_block = invalid_new_blocks[11]
@@ -585,7 +585,7 @@ class TestBlockchainTransactions:
 
         # Create another block that includes our transaction
         dic_h = {11: (valid_program, aggsig)}
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks[:11], 10, b"1", coinbase_puzzlehash, dic_h)
+        new_blocks = bt.get_consecutive_blocks(1, blocks[:11], 10, b"1", coinbase_puzzlehash, dic_h)
         next_block = new_blocks[11]
         error = await full_node_1.blockchain._validate_transactions(next_block, next_block.get_fees_coin().amount)
         assert error is None
@@ -599,7 +599,7 @@ class TestBlockchainTransactions:
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
         # Farm blocks
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -639,7 +639,7 @@ class TestBlockchainTransactions:
 
         # Create another block that includes our transaction
         dic_h = {11: (solo_program, aggsig)}
-        invalid_new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        invalid_new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         # Try to validate that block
         next_block = invalid_new_blocks[11]
@@ -654,7 +654,7 @@ class TestBlockchainTransactions:
 
         # Create another block that includes our transaction
         dic_h = {11: (valid_program, aggsig)}
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks[:11], 10, b"1", coinbase_puzzlehash, dic_h)
+        new_blocks = bt.get_consecutive_blocks(1, blocks[:11], 10, b"1", coinbase_puzzlehash, dic_h)
 
         # Try to validate newly created block
         next_block = new_blocks[11]
@@ -671,7 +671,7 @@ class TestBlockchainTransactions:
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
         # Farm blocks
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -695,7 +695,7 @@ class TestBlockchainTransactions:
 
         # Create another block that includes our transaction
         dic_h = {11: (program, aggsig)}
-        invalid_new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        invalid_new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         # Try to validate that block at index 11
         next_block = invalid_new_blocks[11]
@@ -728,7 +728,7 @@ class TestBlockchainTransactions:
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
         # Farm blocks
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -753,7 +753,7 @@ class TestBlockchainTransactions:
 
         # Create another block that includes our transaction
         dic_h = {11: (program, aggsig)}
-        invalid_new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        invalid_new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         # Try to validate that block at index 11
         next_block = invalid_new_blocks[11]
@@ -786,7 +786,7 @@ class TestBlockchainTransactions:
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
         # Farm blocks
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -811,7 +811,7 @@ class TestBlockchainTransactions:
 
         # Create another block that includes our transaction
         dic_h = {11: (program, aggsig)}
-        invalid_new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        invalid_new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         # Try to validate that block before 3 sec
         next_block = invalid_new_blocks[11]
@@ -845,7 +845,7 @@ class TestBlockchainTransactions:
         coinbase_puzzlehash = WALLET_A_PUZZLE_HASHES[0]
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:
@@ -874,7 +874,7 @@ class TestBlockchainTransactions:
         aggsig = next_spendbundle.aggregated_signature
 
         dic_h = {11: (program, aggsig)}
-        new_blocks = bt.get_consecutive_blocks(test_constants, 1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
+        new_blocks = bt.get_consecutive_blocks(1, blocks, 10, b"", coinbase_puzzlehash, dic_h)
 
         next_block = new_blocks[11]
 
@@ -922,7 +922,7 @@ class TestBlockchainTransactions:
         receiver_puzzlehash = BURN_PUZZLE_HASH
 
         # Farm blocks
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"", coinbase_puzzlehash)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"", coinbase_puzzlehash)
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         for block in blocks:

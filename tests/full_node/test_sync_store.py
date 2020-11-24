@@ -17,9 +17,9 @@ class TestStore:
     @pytest.mark.asyncio
     async def test_basic_store(self):
         assert sqlite3.threadsafety == 1
-        blocks = bt.get_consecutive_blocks(test_constants, 9, [], 9, b"0")
-        # blocks_alt = bt.get_consecutive_blocks(test_constants, 3, [], 9, b"1")
-        bt.get_consecutive_blocks(test_constants, 3, [], 9, b"1")
+        blocks = bt.get_consecutive_blocks(9, [], 9, b"0")
+        # blocks_alt = bt.get_consecutive_blocks( 3, [], 9, b"1")
+        bt.get_consecutive_blocks(3, [], 9, b"1")
         db = await SyncStore.create()
         # db_2 = await SyncStore.create()
         await SyncStore.create()

@@ -8,7 +8,7 @@ from blspy import AugSchemeMPL
 from src.consensus.constants import ConsensusConstants
 from src.consensus.deficit import calculate_deficit
 from src.consensus.difficulty_adjustment import (
-    finishes_sub_epoch,
+    can_finish_sub_epoch,
     get_ips_and_difficulty,
 )
 from src.consensus.get_block_challenge import get_block_challenge
@@ -64,10 +64,10 @@ async def validate_unfinished_header_block(
         finishes_epoch: bool = False
     else:
         height: uint32 = uint32(prev_sb.height + 1)
-        finishes_se: bool = finishes_sub_epoch(
+        finishes_se: bool = can_finish_sub_epoch(
             constants, prev_sb.height, prev_sb.deficit, False, sub_blocks, prev_sb.prev_hash
         )
-        finishes_epoch: bool = finishes_sub_epoch(
+        finishes_epoch: bool = can_finish_sub_epoch(
             constants, prev_sb.height, prev_sb.deficit, True, sub_blocks, prev_sb.prev_hash
         )
 
@@ -339,7 +339,7 @@ async def validate_unfinished_header_block(
                 )
         elif new_sub_slot and not genesis_block:
             # 3d. Check that we don't have to include a sub-epoch summary
-            if finishes_sub_epoch(constants, prev_sb.height, prev_sb.deficit, False, sub_blocks, prev_sb.prev_hash):
+            if can_finish_sub_epoch(constants, prev_sb.height, prev_sb.deficit, False, sub_blocks, prev_sb.prev_hash):
                 return None, ValidationError(
                     Err.INVALID_SUB_EPOCH_SUMMARY, "block finishes sub-epoch but ses-hash is None"
                 )

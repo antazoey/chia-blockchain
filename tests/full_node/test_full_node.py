@@ -62,7 +62,7 @@ async def wb(num_blocks, two_nodes):
     full_node_1, _, _, _ = two_nodes
     wallet_a = bt.get_pool_wallet_tool()
     wallet_receiver = WalletTool()
-    blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10)
+    blocks = bt.get_consecutive_blocks(num_blocks, [], 10)
     for i in range(1, num_blocks):
         async for _ in full_node_1.respond_block(fnp.RespondBlock(blocks[i])):
             pass
@@ -821,7 +821,7 @@ class TestWalletProtocol:
     async def test_request_header(self, two_nodes):
         full_node_1, full_node_2, server_1, server_2 = two_nodes
         num_blocks = 2
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, seed=b"test_request_header")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, seed=b"test_request_header")
         for block in blocks[:2]:
             async for _ in full_node_1.respond_block(fnp.RespondBlock(block)):
                 pass
@@ -850,7 +850,7 @@ class TestWalletProtocol:
 
         await server_2.start_client(PeerInfo("localhost", uint16(server_1._port)), None)
         blocks_list = await get_block_path(full_node_1)
-        blocks_new = bt.get_consecutive_blocks(test_constants, 5, seed=b"test_request_removals")
+        blocks_new = bt.get_consecutive_blocks(5, seed=b"test_request_removals")
 
         # Request removals for nonexisting block fails
         msgs = [
@@ -1024,7 +1024,7 @@ class TestWalletProtocol:
 
         await server_2.start_client(PeerInfo("localhost", uint16(server_1._port)), None)
         blocks_list = await get_block_path(full_node_1)
-        blocks_new = bt.get_consecutive_blocks(test_constants, 5, seed=b"test_request_additions")
+        blocks_new = bt.get_consecutive_blocks(5, seed=b"test_request_additions")
 
         # Request additinos for nonexisting block fails
         msgs = [

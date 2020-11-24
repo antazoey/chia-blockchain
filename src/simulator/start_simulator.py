@@ -12,11 +12,11 @@ from src.util.default_root import DEFAULT_ROOT_PATH
 from src.util.path import mkdir, path_from_root
 
 from .full_node_simulator import FullNodeSimulator
-from .simulator_constants import test_constants
+from .simulator_constants import sim_test_constants
 
 
 # See: https://bugs.python.org/issue29288
-u"".encode("idna")
+"".encode("idna")
 
 SERVICE_NAME = "full_node"
 
@@ -56,7 +56,7 @@ def main():
     kwargs = service_kwargs_for_full_node_simulator(
         DEFAULT_ROOT_PATH,
         config,
-        test_constants,
+        sim_test_constants,
         BlockTools(),
     )
     return run_service(**kwargs)

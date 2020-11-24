@@ -34,12 +34,10 @@ class TestNodeLoad:
     async def test_unfinished_blocks_load(self, two_nodes):
         num_blocks = 2
         full_node_1, full_node_2, server_1, server_2 = two_nodes
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10)
 
         for i in range(1, num_blocks - 1):
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(blocks[i])
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(blocks[i])):
                 pass
 
         await server_2.start_client(PeerInfo("localhost", uint16(server_1._port)), None)
@@ -55,27 +53,19 @@ class TestNodeLoad:
                 "respond_unfinished_block",
                 full_node_protocol.RespondUnfinishedBlock(blocks[num_blocks - 1]),
             )
-            server_1.push_message(
-                OutboundMessage(NodeType.FULL_NODE, msg, Delivery.BROADCAST)
-            )
+            server_1.push_message(OutboundMessage(NodeType.FULL_NODE, msg, Delivery.BROADCAST))
 
         # Send the whole block ast the end so we can detect when the node is done
-        block_msg = Message(
-            "respond_block", full_node_protocol.RespondBlock(blocks[num_blocks - 1])
-        )
-        server_1.push_message(
-            OutboundMessage(NodeType.FULL_NODE, block_msg, Delivery.BROADCAST)
-        )
+        block_msg = Message("respond_block", full_node_protocol.RespondBlock(blocks[num_blocks - 1]))
+        server_1.push_message(OutboundMessage(NodeType.FULL_NODE, block_msg, Delivery.BROADCAST))
 
-        await time_out_assert(
-            60, node_height_at_least, True, full_node_2, num_blocks - 1
-        )
+        await time_out_assert(60, node_height_at_least, True, full_node_2, num_blocks - 1)
 
     @pytest.mark.asyncio
     async def test_blocks_load(self, two_nodes):
         num_blocks = 50
         full_node_1, full_node_2, server_1, server_2 = two_nodes
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10)
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10)
 
         await server_2.start_client(PeerInfo("localhost", uint16(server_1._port)), None)
 
@@ -88,8 +78,6 @@ class TestNodeLoad:
         for i in range(1, num_blocks):
             await time_out_assert(5, node_height_at_least, True, full_node_2, i - 2)
             msg = Message("respond_block", full_node_protocol.RespondBlock(blocks[i]))
-            server_1.push_message(
-                OutboundMessage(NodeType.FULL_NODE, msg, Delivery.BROADCAST)
-            )
+            server_1.push_message(OutboundMessage(NodeType.FULL_NODE, msg, Delivery.BROADCAST))
         print(f"Time taken to process {num_blocks} is {time.time() - start_unf}")
         assert time.time() - start_unf < 100

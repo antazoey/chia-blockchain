@@ -35,9 +35,7 @@ def generate_test_spend_bundle(
 ) -> SpendBundle:
     if condition_dic is None:
         condition_dic = {}
-    transaction = WALLET_A.generate_unsigned_transaction(
-        amount, newpuzzlehash, coin, condition_dic, fee
-    )
+    transaction = WALLET_A.generate_unsigned_transaction(amount, newpuzzlehash, coin, condition_dic, fee)
     assert transaction is not None
     return WALLET_A.sign_transaction(transaction)
 
@@ -65,20 +63,16 @@ class TestMempool:
     async def test_basic_mempool(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         spend_bundle = generate_test_spend_bundle(block.get_coinbase())
         assert spend_bundle is not None
-        tx: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle)
-        )
+        tx: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle)
         async for _ in full_node_1.respond_transaction(tx):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -91,20 +85,16 @@ class TestMempool:
     async def test_coinbase_freeze(self, two_nodes_small_freeze):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes_small_freeze
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         spend_bundle = generate_test_spend_bundle(block.get_coinbase())
         assert spend_bundle is not None
-        tx: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle)
-        )
+        tx: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle)
 
         async for _ in full_node_1.respond_transaction(tx):
             outbound: OutboundMessage = _
@@ -114,12 +104,10 @@ class TestMempool:
         sb = full_node_1.mempool_manager.get_spendbundle(spend_bundle.name())
         assert sb is None
 
-        blocks = bt.get_consecutive_blocks(test_constants, 30, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(30, [], 10, b"")
 
         for i in range(1, 31):
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(blocks[i])
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(blocks[i])):
                 pass
 
         async for _ in full_node_1.respond_transaction(tx):
@@ -133,21 +121,17 @@ class TestMempool:
     async def test_double_spend(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase())
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -158,9 +142,7 @@ class TestMempool:
             newpuzzlehash=BURN_PUZZLE_HASH_2,
         )
         assert spend_bundle2 is not None
-        tx2: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle2)
-        )
+        tx2: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle2)
         async for _ in full_node_1.respond_transaction(tx2):
             pass
 
@@ -174,20 +156,16 @@ class TestMempool:
     async def test_double_spend_with_higher_fee(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase())
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -196,9 +174,7 @@ class TestMempool:
         spend_bundle2 = generate_test_spend_bundle(block.get_coinbase(), fee=1)
 
         assert spend_bundle2 is not None
-        tx2: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle2)
-        )
+        tx2: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle2)
         async for _ in full_node_1.respond_transaction(tx2):
             pass
 
@@ -212,13 +188,11 @@ class TestMempool:
     async def test_invalid_block_index(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         cvp = ConditionVarPair(
@@ -231,9 +205,7 @@ class TestMempool:
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -247,13 +219,11 @@ class TestMempool:
     async def test_correct_block_index(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         cvp = ConditionVarPair(
@@ -266,9 +236,7 @@ class TestMempool:
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -282,26 +250,20 @@ class TestMempool:
     async def test_invalid_block_age(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
-        cvp = ConditionVarPair(
-            ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, uint64(5).to_bytes(4, "big"), None
-        )
+        cvp = ConditionVarPair(ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, uint64(5).to_bytes(4, "big"), None)
         dic = {cvp.opcode: [cvp]}
 
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -315,28 +277,22 @@ class TestMempool:
     async def test_correct_block_age(self, two_nodes):
         num_blocks = 4
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
-        cvp = ConditionVarPair(
-            ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, uint64(3).to_bytes(4, "big"), None
-        )
+        cvp = ConditionVarPair(ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, uint64(3).to_bytes(4, "big"), None)
         dic = {cvp.opcode: [cvp]}
 
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -350,28 +306,22 @@ class TestMempool:
     async def test_correct_my_id(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
-        cvp = ConditionVarPair(
-            ConditionOpcode.ASSERT_MY_COIN_ID, block.get_coinbase().name(), None
-        )
+        cvp = ConditionVarPair(ConditionOpcode.ASSERT_MY_COIN_ID, block.get_coinbase().name(), None)
         dic = {cvp.opcode: [cvp]}
 
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -385,15 +335,13 @@ class TestMempool:
     async def test_invalid_my_id(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         cvp = ConditionVarPair(
@@ -406,9 +354,7 @@ class TestMempool:
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -422,30 +368,24 @@ class TestMempool:
     async def test_assert_time_exceeds(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         time_now = uint64(int(time() * 1000))
 
-        cvp = ConditionVarPair(
-            ConditionOpcode.ASSERT_TIME_EXCEEDS, time_now.to_bytes(8, "big"), None
-        )
+        cvp = ConditionVarPair(ConditionOpcode.ASSERT_TIME_EXCEEDS, time_now.to_bytes(8, "big"), None)
         dic = {cvp.opcode: [cvp]}
 
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -459,15 +399,13 @@ class TestMempool:
     async def test_assert_time_exceeds_both_cases(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         time_now = uint64(int(time() * 1000))
@@ -483,9 +421,7 @@ class TestMempool:
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             assert outbound.message.function != "new_transaction"
@@ -493,9 +429,7 @@ class TestMempool:
         # Sleep so that 3 sec passes
         await asyncio.sleep(3)
 
-        tx2: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx2: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx2):
             outbound_2: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -509,16 +443,14 @@ class TestMempool:
     async def test_correct_coin_consumed(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
         block2 = blocks[2]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         cvp = ConditionVarPair(
@@ -534,9 +466,7 @@ class TestMempool:
 
         bundle = SpendBundle.aggregate([spend_bundle1, spend_bundle2])
 
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(bundle)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(bundle)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
@@ -550,16 +480,14 @@ class TestMempool:
     async def test_invalid_coin_consumed(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
         block2 = blocks[2]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         cvp = ConditionVarPair(
@@ -572,17 +500,13 @@ class TestMempool:
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase(), dic)
 
         assert spend_bundle1 is not None
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
         async for _ in full_node_1.respond_transaction(tx1):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool
             assert outbound.message.function == "new_transaction"
 
-        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(
-            spend_bundle1.name()
-        )
+        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(spend_bundle1.name())
 
         assert mempool_bundle is None
 
@@ -590,15 +514,13 @@ class TestMempool:
     async def test_assert_fee_condition(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         cvp = ConditionVarPair(
@@ -612,9 +534,7 @@ class TestMempool:
 
         assert spend_bundle1 is not None
 
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
 
         outbound_messages: List[OutboundMessage] = []
         async for outbound in full_node_1.respond_transaction(tx1):
@@ -627,9 +547,7 @@ class TestMempool:
 
         assert new_transaction
 
-        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(
-            spend_bundle1.name()
-        )
+        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(spend_bundle1.name())
 
         assert mempool_bundle is not None
 
@@ -637,15 +555,13 @@ class TestMempool:
     async def test_assert_fee_condition_wrong_fee(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         cvp = ConditionVarPair(
@@ -659,9 +575,7 @@ class TestMempool:
 
         assert spend_bundle1 is not None
 
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
 
         outbound_messages: List[OutboundMessage] = []
         async for outbound in full_node_1.respond_transaction(tx1):
@@ -674,9 +588,7 @@ class TestMempool:
 
         assert new_transaction is False
 
-        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(
-            spend_bundle1.name()
-        )
+        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(spend_bundle1.name())
 
         assert mempool_bundle is None
 
@@ -686,9 +598,9 @@ class TestMempool:
         num_blocks = 2
         wallet_receiver = bt.get_farmer_wallet_tool()
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, blocks, 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, blocks, 10, b"")
 
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
@@ -696,9 +608,7 @@ class TestMempool:
         wallet_2_block = blocks[3]
 
         for b in blocks:
-            async for _ in full_node_1.respond_block(
-                full_node_protocol.RespondBlock(b)
-            ):
+            async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(b)):
                 pass
 
         cvp = ConditionVarPair(
@@ -723,9 +633,7 @@ class TestMempool:
 
         assert combined.fees() == 4
 
-        tx1: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle1)
-        )
+        tx1: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle1)
 
         outbound_messages: List[OutboundMessage] = []
         async for outbound in full_node_1.respond_transaction(tx1):
@@ -738,9 +646,7 @@ class TestMempool:
 
         assert new_transaction is False
 
-        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(
-            spend_bundle1.name()
-        )
+        mempool_bundle = full_node_1.mempool_manager.get_spendbundle(spend_bundle1.name())
 
         assert mempool_bundle is None
 
@@ -748,13 +654,11 @@ class TestMempool:
     async def test_double_spend_same_bundle(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         spend_bundle1 = generate_test_spend_bundle(block.get_coinbase())
@@ -770,9 +674,7 @@ class TestMempool:
 
         spend_bundle_combined = SpendBundle.aggregate([spend_bundle1, spend_bundle2])
 
-        tx: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle_combined)
-        )
+        tx: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle_combined)
         messages = []
         async for outbound in full_node_1.respond_transaction(tx):
             messages.append(outbound)
@@ -784,13 +686,11 @@ class TestMempool:
     async def test_agg_sig_condition(self, two_nodes):
         num_blocks = 2
 
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks, [], 10, b"")
+        blocks = bt.get_consecutive_blocks(num_blocks, [], 10, b"")
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
         block = blocks[1]
-        async for _ in full_node_1.respond_block(
-            full_node_protocol.RespondBlock(block)
-        ):
+        async for _ in full_node_1.respond_block(full_node_protocol.RespondBlock(block)):
             pass
 
         # this code has been changed to use generate_test_spend_bundle
@@ -808,9 +708,7 @@ class TestMempool:
 
         puzzle, solution = list(coin_solution.solution.as_iter())
         conditions_dict = conditions_by_opcode(con)
-        pkm_pairs = pkm_pairs_for_conditions_dict(
-            conditions_dict, coin_solution.coin.name()
-        )
+        pkm_pairs = pkm_pairs_for_conditions_dict(conditions_dict, coin_solution.coin.name())
         assert len(pkm_pairs) == 1
 
         assert pkm_pairs[0][1] == solution.first().get_tree_hash()
@@ -818,9 +716,7 @@ class TestMempool:
         spend_bundle = WALLET_A.sign_transaction(unsigned)
         assert spend_bundle is not None
 
-        tx: full_node_protocol.RespondTransaction = (
-            full_node_protocol.RespondTransaction(spend_bundle)
-        )
+        tx: full_node_protocol.RespondTransaction = full_node_protocol.RespondTransaction(spend_bundle)
         async for _ in full_node_1.respond_transaction(tx):
             outbound: OutboundMessage = _
             # Maybe transaction means that it's accepted in mempool

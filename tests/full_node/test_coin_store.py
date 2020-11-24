@@ -94,7 +94,7 @@ class TestCoinStore:
 
     @pytest.mark.asyncio
     async def test_set_spent(self):
-        blocks = bt.get_consecutive_blocks(test_constants, 9, [])
+        blocks = bt.get_consecutive_blocks(9, [])
 
         db_path = Path("fndb_test.db")
         if db_path.exists():
@@ -122,7 +122,7 @@ class TestCoinStore:
 
     @pytest.mark.asyncio
     async def test_rollback(self):
-        blocks = bt.get_consecutive_blocks(test_constants, 20)
+        blocks = bt.get_consecutive_blocks(20)
 
         db_path = Path("fndb_test.db")
         if db_path.exists():
@@ -166,7 +166,7 @@ class TestCoinStore:
     async def test_basic_reorg(self):
         initial_block_count = 30
         reorg_length = 15
-        blocks = bt.get_consecutive_blocks(test_constants, initial_block_count)
+        blocks = bt.get_consecutive_blocks(initial_block_count)
         db_path = Path("blockchain_test.db")
         if db_path.exists():
             db_path.unlink()
@@ -228,7 +228,7 @@ class TestCoinStore:
     @pytest.mark.asyncio
     async def test_get_puzzle_hash(self):
         num_blocks = 10
-        blocks = bt.get_consecutive_blocks(test_constants, num_blocks)
+        blocks = bt.get_consecutive_blocks(num_blocks)
         db_path = Path("blockchain_test.db")
         if db_path.exists():
             db_path.unlink()
