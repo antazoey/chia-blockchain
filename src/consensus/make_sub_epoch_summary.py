@@ -10,7 +10,7 @@ from src.consensus.pot_iterations import (
 from src.consensus.deficit import calculate_deficit
 from src.consensus.difficulty_adjustment import (
     get_next_ips,
-    can_finish_sub_epoch,
+    can_finish_sub_and_full_epoch,
     get_next_difficulty,
 )
 from src.full_node.sub_block_record import SubBlockRecord
@@ -63,33 +63,31 @@ def next_sub_epoch_summary(
 ) -> Optional[SubEpochSummary]:
     prev_sb: Optional[SubBlockRecord] = sub_blocks.get(block.prev_header_hash, None)
     if block.height == 0:
-        ips = constants.IPS_STARTING
-    else:
-        assert prev_sb is not None
-        # This is the ips of the current block
-        ips = get_next_ips(
-            constants,
-            sub_blocks,
-            height_to_hash,
-            prev_sb.prev_hash,
-            prev_sb.height,
-            prev_sb.ips,
-            prev_sb.deficit,
-            len(block.finished_sub_slots) > 0,
-            prev_sb.sp_total_iters(constants),
-        )
+        return None
+
+    assert prev_sb is not None
+    # This is the ips of the current block
+    ips = get_next_ips(
+        constants,
+        sub_blocks,
+        height_to_hash,
+        prev_sb.prev_hash,
+        prev_sb.height,
+        prev_sb.ips,
+        prev_sb.deficit,
+        len(block.finished_sub_slots) > 0,
+        prev_sb.sp_total_iters(constants),
+    )
     overflow = is_overflow_sub_block(constants, signage_point_index)
     deficit = calculate_deficit(constants, block.height, prev_sb, overflow, len(block.finished_sub_slots) > 0)
-    finishes_se = can_finish_sub_epoch(
-        constants, block.height, deficit, False, sub_blocks, prev_sb.header_hash if prev_sb is not None else None
-    )
-    finishes_epoch: bool = can_finish_sub_epoch(
-        constants, block.height, deficit, True, sub_blocks, prev_sb.header_hash if prev_sb is not None else None
+    can_finish_se, can_finish_epoch = can_finish_sub_and_full_epoch(
+        constants, block.height, deficit, sub_blocks, prev_sb.header_hash if prev_sb is not None else None
     )
 
-    if finishes_se:
-        assert prev_sb is not None
-        if finishes_epoch:
+    if can_finish_se:
+        next_difficulty = None
+        next_ips = None
+        if can_finish_epoch:
             sp_iters = calculate_sp_iters(constants, ips, signage_point_index)
             ip_iters = calculate_ip_iters(constants, ips, signage_point_index, required_iters)
             sub_slot_iters = calculate_sub_slot_iters(constants, ips)
@@ -116,8 +114,5 @@ def next_sub_epoch_summary(
                 uint128(block.total_iters - ip_iters + sp_iters - (sub_slot_iters if overflow else 0)),
             )
             sp_total_iters = uint128(block.total_iters - ip_iters + sp_iters - (sub_slot_iters if overflow else 0))
-        else:
-            next_difficulty = None
-            next_ips = None
         return make_sub_epoch_summary(constants, sub_blocks, block.height + 1, prev_sb, next_difficulty, next_ips)
     return None
