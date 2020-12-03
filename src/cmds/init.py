@@ -4,6 +4,8 @@ import shutil
 
 from argparse import Namespace, ArgumentParser
 from typing import List, Dict, Any
+
+from src.options import default_options
 from src.util.keychain import Keychain
 
 from src.util.config import unflatten_properties
@@ -25,9 +27,13 @@ from src.ssl.create_ssl import generate_selfsigned_cert
 from src.wallet.derive_keys import master_sk_to_wallet_sk, master_sk_to_pool_sk
 from src.util.chech32 import encode_puzzle_hash
 
+import click
 
-def make_parser(parser: ArgumentParser):
-    parser.set_defaults(function=init)
+
+@click.group()
+@default_options()
+def init(state):
+    return chia_init(state.root_path)
 
 
 def dict_add_new_default(
@@ -173,10 +179,6 @@ def initialize_ssl(root_path: Path):
         f.write(cert)
     with open(path_key, "w") as f:
         f.write(key)
-
-
-def init(args: Namespace, parser: ArgumentParser):
-    return chia_init(args.root_path)
 
 
 def chiaMinorReleaseNumber():

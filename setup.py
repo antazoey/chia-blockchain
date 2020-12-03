@@ -2,6 +2,7 @@ from setuptools import setup
 
 
 dependencies = [
+    "click>=7.1.1",  # Used for CLI
     "aiter==0.13.20191203",  # Used for async generator tools
     "blspy==0.2.3",  # Signature library
     "chiavdf==0.12.26",  # timelord and vdf verification
