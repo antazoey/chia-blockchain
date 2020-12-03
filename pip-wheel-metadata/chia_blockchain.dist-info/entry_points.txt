@@ -1,0 +1,11 @@
+[console_scripts]
+chia = src.cmds.chia:chia
+chia_farmer = src.server.start_farmer:main
+chia_full_node = src.server.start_full_node:main
+chia_full_node_simulator = src.simulator.start_simulator:main
+chia_harvester = src.server.start_harvester:main
+chia_introducer = src.server.start_introducer:main
+chia_timelord = src.server.start_timelord:main
+chia_timelord_launcher = src.timelord_launcher:main
+chia_wallet = src.server.start_wallet:main
+

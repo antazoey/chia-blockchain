@@ -1,63 +1,43 @@
-import importlib
-import pathlib
-from argparse import Namespace, ArgumentParser
+import sys
+import click
+import signal
 
+from src.options import default_options
+from src.errors import _ErrorHandlingGroup
 from src import __version__
-from src.util.default_root import DEFAULT_ROOT_PATH
 
 
-SUBCOMMANDS = [
-    "init",
-    "keys",
-    "show",
-    "start",
-    "stop",
-    "version",
-    "plots",
-    "netspace",
-    "run_daemon",
-    "wallet",
-]
+def exit_on_interrupt(signal, frame):
+    """Handle KeyboardInterrupts by just exiting instead of printing out a stack"""
+    click.echo(err=True)
+    sys.exit(1)
 
 
-def create_parser() -> ArgumentParser:
-    parser: ArgumentParser = ArgumentParser(
-        description="Manage chia blockchain infrastructure (%s)." % __version__,
-        epilog="Try 'chia start node', 'chia netspace -d 48', or 'chia show -s'.",
-    )
+signal.signal(signal.SIGINT, exit_on_interrupt)
 
-    parser.add_argument(
-        "-r",
-        "--root-path",
-        help="Config file root (defaults to %s)." % DEFAULT_ROOT_PATH,
-        type=pathlib.Path,
-        default=DEFAULT_ROOT_PATH,
-    )
+_CONTEXT_SETTINGS = {
+    "help_option_names": ["-h", "--help"],
+    "max_content_width": 200,
+}
 
-    subparsers = parser.add_subparsers()
+_HELP = "Manage chia blockchain infrastructure (%s)." % __version__
 
-    # this magic metaprogramming generalizes:
-    #   from src.cmds import version
-    #   new_parser = subparsers.add_parser(version)
-    #   version.version_parser(new_parser)
-
-    for subcommand in SUBCOMMANDS:
-        mod = importlib.import_module("src.cmds.%s" % subcommand)
-        mod.make_parser(subparsers.add_parser(subcommand))  # type: ignore
-
-    parser.set_defaults(function=lambda args, parser: parser.print_help())
-    return parser
+_EPILOG = "Try 'chia start node', 'chia netspace -d 48', or 'chia show -s'."
 
 
-def chia(args: Namespace, parser: ArgumentParser):
-    return args.function(args, parser)
+@click.group(cls=_ErrorHandlingGroup, context_settings=_CONTEXT_SETTINGS, help=_HELP, epilog=_EPILOG)
+@default_options()
+def chia(state):
+    pass
 
 
-def main():
-    parser = create_parser()
-    args = parser.parse_args()
-    return chia(args, parser)
-
-
-if __name__ == "__main__":
-    main()
+# TODO: Uncomment when all command groups imported
+# chia.add_command(init)
+# chia.add_command(keys)
+# chia.add_command(show)
+# chia.add_command(stop)
+# chia.add_command(version)
+# chia.add_command(plots)
+# chia.add_command(netspace)
+# chia.add_command(run_daemon)
+# chia.add_command(wallet)
