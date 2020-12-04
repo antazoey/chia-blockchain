@@ -3,6 +3,7 @@ import click
 import signal
 
 from src.cmds.init import init
+from src.cmds.keys import keys
 from src.errors import _ErrorHandlingGroup
 from src import __version__
 from src.options import default_options
@@ -34,7 +35,7 @@ def chia(state):
 
 # TODO: Uncomment when all command groups imported
 chia.add_command(init)
-# chia.add_command(keys)
+chia.add_command(keys)
 # chia.add_command(show)
 # chia.add_command(stop)
 # chia.add_command(version)
