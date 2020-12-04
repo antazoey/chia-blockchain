@@ -30,9 +30,10 @@ from src.util.chech32 import encode_puzzle_hash
 import click
 
 
-@click.group()
+@click.command()
 @default_options()
 def init(state):
+    """Initialize a Chia node."""
     return chia_init(state.root_path)
 
 

@@ -2,9 +2,10 @@ import sys
 import click
 import signal
 
-from src.options import default_options
+from src.cmds.init import init
 from src.errors import _ErrorHandlingGroup
 from src import __version__
+from src.options import default_options
 
 
 def exit_on_interrupt(signal, frame):
@@ -32,7 +33,7 @@ def chia(state):
 
 
 # TODO: Uncomment when all command groups imported
-# chia.add_command(init)
+chia.add_command(init)
 # chia.add_command(keys)
 # chia.add_command(show)
 # chia.add_command(stop)
