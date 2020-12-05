@@ -2,7 +2,6 @@ from src import __version__
 import os
 import shutil
 
-from argparse import Namespace, ArgumentParser
 from typing import List, Dict, Any
 
 from src.options import default_options
@@ -43,7 +42,7 @@ def dict_add_new_default(
     for k, v in default.items():
         if isinstance(v, dict) and k in updated:
             # If there is an intermediate key with empty string value, do not migrate all decendants
-            if do_not_migrate_keys.get(k, None) == "":
+            if not do_not_migrate_keys.get(k, None):
                 do_not_migrate_keys[k] = v
             dict_add_new_default(updated[k], default[k], do_not_migrate_keys.get(k, {}))
         elif k not in updated or k in do_not_migrate_keys:
@@ -51,65 +50,85 @@ def dict_add_new_default(
 
 
 def check_keys(new_root):
-    keychain: Keychain = Keychain()
-    all_sks = keychain.get_all_private_keys()
-    if len(all_sks) == 0:
-        print(
-            "No keys are present in the keychain. Generate them with 'chia keys generate'"
-        )
-        return
-
+    all_sks = _get_private_keys()
     config: Dict = load_config(new_root, "config.yaml")
     pool_child_pubkeys = [master_sk_to_pool_sk(sk).get_g1() for sk, _ in all_sks]
     all_targets = []
+    _set_targets(config, all_sks, all_targets)
+    _set_destinations(config, all_targets, pool_child_pubkeys, new_root)
+
+
+def _set_targets(config, all_sks, all_targets):
     stop_searching_for_farmer = "xch_target_address" not in config["farmer"]
     stop_searching_for_pool = "xch_target_address" not in config["pool"]
     for i in range(500):
         if stop_searching_for_farmer and stop_searching_for_pool and i > 0:
             break
         for sk, _ in all_sks:
-            all_targets.append(
-                encode_puzzle_hash(
-                    create_puzzlehash_for_pk(
-                        master_sk_to_wallet_sk(sk, uint32(i)).get_g1()
-                    )
-                )
-            )
+            _create_puzzlehash_for_pk(all_targets, sk, i)
             if all_targets[-1] == config["farmer"].get("xch_target_address"):
                 stop_searching_for_farmer = True
             if all_targets[-1] == config["pool"].get("xch_target_address"):
                 stop_searching_for_pool = True
 
-    # Set the destinations
-    if "xch_target_address" not in config["farmer"]:
-        print(
-            f"Setting the xch destination address for coinbase fees reward to {all_targets[0]}"
-        )
-        config["farmer"]["xch_target_address"] = all_targets[0]
-    elif config["farmer"]["xch_target_address"] not in all_targets:
-        print(
-            f"WARNING: farmer using a puzzle hash which we don't have the private"
-            f" keys for. Overriding "
-            f"{config['farmer']['xch_target_address']} with {all_targets[0]}"
-        )
-        config["farmer"]["xch_target_address"] = all_targets[0]
 
+def _create_puzzlehash_for_pk(all_targets, sk, i):
+    all_targets.append(
+        encode_puzzle_hash(
+            create_puzzlehash_for_pk(
+                master_sk_to_wallet_sk(sk, uint32(i)).get_g1()
+            )
+        )
+    )
+
+
+def _get_private_keys():
+    keychain: Keychain = Keychain()
+    all_sks = keychain.get_all_private_keys()
+    if not all_sks:
+        click.echo(
+            "No keys are present in the keychain. Generate them with 'chia keys generate'"
+        )
+        exit(1)
+    return all_sks
+
+
+def _set_destinations(config, all_targets, pool_child_pubkeys, new_root):
+    _set_xch_destination(config, all_targets, "farmer")
+    _set_pool(config)
+    _set_xch_destination(config, all_targets, "pool")
+    _set_farmer_pool_pks(config, pool_child_pubkeys, new_root)
+
+
+def _set_xch_destination(config, all_targets, farmer_or_pool_key):
+    if "xch_target_address" not in config[farmer_or_pool_key]:
+        _set_fees_reward_destination(config, all_targets, farmer_or_pool_key)
+    elif config[farmer_or_pool_key]["xch_target_address"] not in all_targets:
+        _override_target_address(config, all_targets, farmer_or_pool_key)
+
+
+def _set_fees_reward_destination(config, all_targets, farmer_or_pool_key):
+    click.echo(
+        f"Setting the xch destination address for coinbase fees reward to {all_targets[0]}"
+    )
+    config[farmer_or_pool_key]["xch_target_address"] = all_targets[0]
+
+
+def _override_target_address(config, all_targets, farmer_or_pool_key):
+    click.echo(
+        f"WARNING: farmer using a puzzle hash which we don't have the private"
+        f" keys for. Overriding "
+        f"{config[farmer_or_pool_key]['xch_target_address']} with {all_targets[0]}"
+    )
+    config[farmer_or_pool_key]["xch_target_address"] = all_targets[0]
+
+
+def _set_pool(config):
     if "pool" not in config:
         config["pool"] = {}
-    if "xch_target_address" not in config["pool"]:
-        print(
-            f"Setting the xch destination address for coinbase reward to {all_targets[0]}"
-        )
-        config["pool"]["xch_target_address"] = all_targets[0]
-    elif config["pool"]["xch_target_address"] not in all_targets:
-        print(
-            f"WARNING: pool using a puzzle hash which we don't have the private"
-            f" keys for. Overriding "
-            f"{config['pool']['xch_target_address']} with {all_targets[0]}"
-        )
-        config["pool"]["xch_target_address"] = all_targets[0]
 
-    # Set the pool pks in the farmer
+
+def _set_farmer_pool_pks(config, pool_child_pubkeys, new_root):
     pool_pubkeys_hex = set(bytes(pk).hex() for pk in pool_child_pubkeys)
     if "pool_public_keys" in config["farmer"]:
         for pk_hex in config["farmer"]["pool_public_keys"]:
@@ -130,18 +149,18 @@ def migrate_from(
     Copy all the files in "manifest" to the new config directory.
     """
     if old_root == new_root:
-        print("same as new path, exiting")
+        click.echo("same as new path, exiting")
         return 1
     if not old_root.is_dir():
-        print(f"{old_root} not found - this is ok if you did not install this version.")
+        click.echo(f"{old_root} not found - this is ok if you did not install this version.")
         return 0
-    print(f"\n{old_root} found")
-    print(f"Copying files from {old_root} to {new_root}\n")
+    click.echo(f"\n{old_root} found")
+    click.echo(f"Copying files from {old_root} to {new_root}\n")
     not_found = []
 
     def copy_files_rec(old_path: Path, new_path: Path):
         if old_path.is_file():
-            print(f"{new_path}")
+            click.echo(str(new_path))
             mkdir(new_path.parent)
             shutil.copy(old_path, new_path)
         elif old_path.is_dir():
@@ -150,7 +169,7 @@ def migrate_from(
                 copy_files_rec(old_path_child, new_path_child)
         else:
             not_found.append(f)
-            print(f"{old_path} not found, skipping")
+            click.echo(f"{old_path} not found, skipping")
 
     for f in manifest:
         old_path = old_root / f
@@ -192,12 +211,9 @@ def chiaMinorReleaseNumber():
     scm_minor_version = version[1]
     if len(version) > 2:
         smc_patch_version = version[2]
-        patch_release_number = smc_patch_version
     else:
         smc_patch_version = ""
 
-    major_release_number = scm_major_version
-    minor_release_number = scm_minor_version
     dev_release_number = ""
 
     # If this is a beta dev release - get which beta it is
@@ -231,19 +247,19 @@ def chiaMinorReleaseNumber():
     if len(dev_release_number) > 0:
         install_release_number += dev_release_number
 
-    print(f"Install release number: {install_release_number}")
+    click.echo(f"Install release number: {install_release_number}")
     return int(patch_release_number)
 
 
 def chia_init(root_path: Path):
     if os.environ.get("CHIA_ROOT", None) is not None:
-        print(
+        click.echo(
             f"warning, your CHIA_ROOT is set to {os.environ['CHIA_ROOT']}. "
             f"Please unset the environment variable and run chia init again\n"
             f"or manually migrate config.yaml."
         )
 
-    print(f"Chia directory {root_path}")
+    click.echo(f"Chia directory {root_path}")
     if root_path.is_dir() and Path(root_path / "config" / "config.yaml").exists():
         # This is reached if CHIA_ROOT is set, or if user has run chia init twice
         # before a new update.

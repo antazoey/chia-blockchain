@@ -1,71 +1,69 @@
 import aiohttp
+import aiohttp.client_exceptions
 import asyncio
 import time
 from time import struct_time, localtime
 import datetime
+import click
 from src.util.config import load_config
 from src.util.default_root import DEFAULT_ROOT_PATH
 
 from src.rpc.full_node_rpc_client import FullNodeRpcClient
 
 
-def make_parser(parser):
+data_block_height_option = click.option(
+    "--delta-block-height",
+    "-d",
+    help="Compare a block X blocks older.",
+    default="24"
+)
 
-    parser.add_argument(
-        "-d",
-        "--delta-block-height",
-        help="Compare a block X blocks older."
-        + "Defaults to 24 blocks and LCA as the starting block."
-        + "Use --start BLOCK_HEIGHT to specify starting block",
-        type=str,
-        default="24",
-    )
-    parser.add_argument(
-        "-s",
-        "--start",
-        help="Newest block used to calculate estimated total network space. Defaults to LCA.",
-        type=str,
-        default="",
-    )
-    parser.add_argument(
-        "-p",
-        "--rpc-port",
-        help="Set the port where the Full Node is hosting the RPC interface."
-        + "See the rpc_port under full_node in config.yaml. Defaults to 8555",
-        type=int,
-    )
-    parser.set_defaults(function=netspace)
+start_option = click.option(
+    "--start",
+    "-s",
+    help="Newest block used to calculate estimated total network space. Defaults to LCA.",
+    default=""
+)
+
+port_option = click.option(
+    "--rpc-port",
+    "-p",
+    help="Set the port where the Full Node is hosting the RPC interface."
+)
 
 
-def human_local_time(timestamp):
-    time_local = struct_time(localtime(timestamp))
-    return time.strftime("%a %b %d %Y %T %Z", time_local)
+@click.command()
+@data_block_height_option
+@start_option
+@port_option
+def netspace(delta_block_height, start, rpc_port):
+    return asyncio.run(netstorge_async(delta_block_height, start, rpc_port))
 
 
-async def netstorge_async(args, parser):
+async def netstorge_async(delta_block_height, start, rpc_port):
     """
-    Calculates the estimated space on the network given two block header hases
+    Calculates the estimated space on the network given two block header hashes
     # TODO: add help on failure/no args
     """
+    client = None
     try:
         config = load_config(DEFAULT_ROOT_PATH, "config.yaml")
         self_hostname = config["self_hostname"]
-        if "rpc_port" not in args or args.rpc_port is None:
+        if not rpc_port:
             rpc_port = config["full_node"]["rpc_port"]
-        else:
-            rpc_port = args.rpc_port
+
         client = await FullNodeRpcClient.create(self_hostname, rpc_port)
 
         # print (args.blocks)
-        if args.delta_block_height:
+        if delta_block_height:
             # Get lca or newer block
-            if args.start == "":
+            if not start:
                 blockchain_state = await client.get_blockchain_state()
                 newer_block_height = blockchain_state["lca"].data.height
             else:
-                newer_block_height = int(args.start)  # Starting block height in args
+                newer_block_height = int(start)  # Starting block height in args
             newer_block_header = await client.get_header_by_height(newer_block_height)
-            older_block_height = newer_block_height - int(args.delta_block_height)
+            older_block_height = newer_block_height - int(delta_block_height)
             older_block_header = await client.get_header_by_height(older_block_height)
             newer_block_header_hash = str(newer_block_header.get_hash())
             older_block_header_hash = str(older_block_header.get_hash())
@@ -106,13 +104,15 @@ async def netstorge_async(args, parser):
 
     except Exception as e:
         if isinstance(e, aiohttp.client_exceptions.ClientConnectorError):
-            print(f"Connection error. Check if full node is running at {args.rpc_port}")
+            print(f"Connection error. Check if full node is running at {rpc_port}")
         else:
             print(f"Exception {e}")
 
-    client.close()
-    await client.await_closed()
+    if client:
+        client.close()
+        await client.await_closed()
 
 
-def netspace(args, parser):
-    return asyncio.run(netstorge_async(args, parser))
+def human_local_time(timestamp):
+    time_local = struct_time(localtime(timestamp))
+    return time.strftime("%a %b %d %Y %T %Z", time_local)
